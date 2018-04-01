@@ -1,0 +1,107 @@
+﻿@{
+    ViewBag.Title = "Player";
+}
+@model IEnumerable<MusicBox.Models.Song>
+
+@Styles.Render("~/Media/DataTable")
+@Scripts.Render("~/bundles/DataTable")
+@Styles.Render("~/Media/pure")
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        loadGrid(false);
+    });
+
+    function loadGrid(reload) {
+        var searchText = $('#search').val();
+
+        if (!reload) {
+            var dataTable = $('#datagrid').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "ajax": {
+                    "type": "POST",
+                    "url": '/Player/Songs',
+                    "contentType": 'application/json; charset=utf-8',
+                    'data': function (data) { return data = JSON.stringify(data); },
+                    "dataSrc": function (json) {
+                        for (var i = 0, ien = json.data.length; i < ien; i++) {
+                            //console.info(json.data[i].Name)
+                            json.data[i].Id = '<a href="#' + json.data[i].Id + '" onclick="playmedia(\'' + json.data[i].Name + ' - ' + json.data[i].Artist + '\',\'' + json.data[i].Filename + '\',\'' + json.data[i].Id + '\')"><img alt="play" src="@Url.Content("~/Content/play.png")"></img></a>';
+                        }
+                        return json.data;
+                    }
+                },
+                "order": [[1, "asc"]]
+                ,
+                "columns": [
+                    { "data": "Id", "width": "20px" },
+                    { "data": "Name" },
+                    { "data": "Artist" },
+                    { "data": "Length" },
+                    { "data": "Filename" }
+                ],
+                "paging": false,
+                "searching": true,
+                "scrollCollapse": false,
+                "columnDefs": [
+                    {
+                        "targets": [1,2,3], // your case first column
+                        "className": "text-left"
+                    },
+                    {
+                        "targets": [0],
+                        "orderable": false
+                    }
+                    ,
+                    {
+                        "targets": [4],
+                        "visible": false
+                    }
+                ],
+                "scrollY": "calc(100vh - 305px)"
+            });
+        }
+        else {
+            var table = $('#datagrid').dataTable().api();
+            console.debug(searchText);
+            table.search(searchText).draw();
+        }
+
+    }
+</script>
+
+<link rel="stylesheet" type="text/css" href="@Url.Content("~/Content/DataTable/Material.min.css")" />
+<style type="text/css">
+    .dataTables_wrapper .dataTables_filter {
+        float: right;
+        text-align: right;
+        visibility: hidden;
+        height: 0px;
+    }
+</style>
+<div class="search">
+    <div class="search-controls">
+        <form class="pure-form">
+            <fieldset>
+                <input type="text" class="form-control" id="search" value="" placeholder="Search song">
+                <button type="button" class="pure-button" onclick="loadGrid(true)">Search</button>
+            </fieldset>               
+        </form>
+    </div>
+</div>
+<table id="datagrid" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>Play</th>
+            <th>@Html.DisplayNameFor(model => model.Name)</th>
+            <th>@Html.DisplayNameFor(model => model.Artist)</th>
+            <th>@Html.DisplayNameFor(model => model.Length)</th>
+            <th>@Html.DisplayNameFor(model => model.Filename)</th>
+        </tr>
+    </thead>
+
+</table>
+
+
+
